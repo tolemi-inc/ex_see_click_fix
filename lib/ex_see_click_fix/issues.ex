@@ -13,11 +13,20 @@ defmodule ExSeeClickFix.Issues do
           {:ok, :eof} ->
             {:halt, meta}
 
-          {:ok, response} ->
+          {:ok, %{status: 200} = response} ->
             issues = get_issues(response)
             pagination = get_pagination(response)
 
+            Logger.info(
+              "pulled #{ExSeeClickFix.Pagination.progress(pagination)} / #{
+                ExSeeClickFix.Pagination.entries(pagination)
+              }"
+            )
+
             {issues, %{pagination: pagination, options: options}}
+
+          {:ok, response} ->
+            raise "Something went south: #{inspect(response)}"
         end
       end,
       fn _ -> :ok end
@@ -76,6 +85,6 @@ defmodule ExSeeClickFix.Issues do
     default_options = [per_page: 100, sort: "update_at", sort_direction: "DESC"]
     query = Keyword.merge(default_options, options)
 
-    Tesla.get(client, @resource, query: query)
+    ExSeeClickFix.Request.get(client, @resource, query: query)
   end
 end
