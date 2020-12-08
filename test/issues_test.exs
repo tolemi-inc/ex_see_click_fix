@@ -2,96 +2,19 @@ defmodule ExSeeClickFix.IssuesTest do
   use ExUnit.Case
   doctest ExSeeClickFix
 
-  setup context do
-    response = Map.get(context, :response)
-
-    if !is_nil(response), do: fixture(response)
-    :ok
-  end
-
-  describe "list/1" do
-    @tag response: :single
-    test "lists valid records" do
-      client = ExSeeClickFix.Client.new("albany-county")
-
-      assert ExSeeClickFix.Issues.list(client, per_page: 1) == [
-               %ExSeeClickFix.Issue{
-                 acknowledged_at: nil,
-                 address: "147-149 Prichard Street Fitchburg, MA, 01420, USA",
-                 closed_at: nil,
-                 comment_url: "https://seeclickfix.com/api/v2/issues/8957626/comments",
-                 created_at: ~U[2020-11-23 17:56:41Z],
-                 description: "missed Friday",
-                 flag_url: "https://seeclickfix.com/api/v2/issues/8957626/flag",
-                 html_url: "https://seeclickfix.com/issues/8957626",
-                 id: 8_957_626,
-                 lat: 42.5857019855574,
-                 lng: -71.8010439778683,
-                 rating: 1,
-                 shortened_url: nil,
-                 status: "Open",
-                 summary: "Missed Trash, Recycling or Yard Waste Pickup",
-                 updated_at: ~U[2020-11-23 17:56:42Z],
-                 url: "https://seeclickfix.com/api/v2/issues/8957626"
-               }
-             ]
-    end
-  end
-
-  describe "stream_list" do
-    @tag response: :two_pages
-    test "streams records from multiple pages" do
-      client = ExSeeClickFix.Client.new("albany-county")
-
-      assert ExSeeClickFix.Issues.stream_list(client, per_page: 1) |> Enum.to_list() == [
-               %ExSeeClickFix.Issue{
-                 acknowledged_at: nil,
-                 address: "147-149 Prichard Street Fitchburg, MA, 01420, USA",
-                 closed_at: nil,
-                 comment_url: "https://seeclickfix.com/api/v2/issues/8957626/comments",
-                 created_at: ~U[2020-11-23 17:56:41Z],
-                 description: "missed Friday",
-                 flag_url: "https://seeclickfix.com/api/v2/issues/8957626/flag",
-                 html_url: "https://seeclickfix.com/issues/8957626",
-                 id: 8_957_626,
-                 lat: 42.5857019855574,
-                 lng: -71.8010439778683,
-                 rating: 1,
-                 shortened_url: nil,
-                 status: "Open",
-                 summary: "Missed Trash, Recycling or Yard Waste Pickup",
-                 updated_at: ~U[2020-11-23 17:56:42Z],
-                 url: "https://seeclickfix.com/api/v2/issues/8957626"
-               },
-               %ExSeeClickFix.Issue{
-                 acknowledged_at: nil,
-                 address: "115 S Grace St Crockett, TX, 75835, USA",
-                 closed_at: nil,
-                 comment_url: "https://seeclickfix.com/api/v2/issues/8958565/comments",
-                 created_at: ~U[2020-11-23 20:46:27Z],
-                 description:
-                   "Sarah Clark reported a water leak behind her house at her fence she says the leak is coming from Lakeway or Twin Drive and really making saturating her back yard. She thinks it's on the City side. ",
-                 flag_url: "https://seeclickfix.com/api/v2/issues/8958565/flag",
-                 html_url: "https://seeclickfix.com/issues/8958565",
-                 id: 8_958_565,
-                 lat: 31.3196943014884,
-                 lng: -95.4435539245605,
-                 rating: 1,
-                 shortened_url: nil,
-                 status: "Open",
-                 summary: "Water Leak",
-                 updated_at: ~U[2020-11-23 20:46:28Z],
-                 url: "https://seeclickfix.com/api/v2/issues/8958565"
-               }
-             ]
-    end
-  end
-
-  def fixture(:single) do
-    Tesla.Mock.mock(fn
+  # We need to mock globally, because we use ExternalService which makes
+  # requests in a separate process.
+  setup_all do
+    Tesla.Mock.mock_global(fn
       %{
         method: :get,
-        url: "https://seeclickfix.com/api/v2/issues"
+        url: "https://seeclickfix.com/api/v2/issues",
+        query: [
+          sort: "update_at",
+          sort_direction: "DESC",
+          per_page: 1,
+          place_url: "albany-county-single-page"
+        ]
       } ->
         %Tesla.Env{
           status: 200,
@@ -171,11 +94,7 @@ defmodule ExSeeClickFix.IssuesTest do
             }
           }
         }
-    end)
-  end
 
-  def fixture(:two_pages) do
-    Tesla.Mock.mock(fn
       %{
         method: :get,
         url: "https://seeclickfix.com/api/v2/issues",
@@ -183,7 +102,7 @@ defmodule ExSeeClickFix.IssuesTest do
           sort: "update_at",
           sort_direction: "DESC",
           per_page: 1,
-          place: "albany-county"
+          place_url: "albany-county-two-pages"
         ]
       } ->
         %Tesla.Env{
@@ -273,7 +192,7 @@ defmodule ExSeeClickFix.IssuesTest do
           sort_direction: "DESC",
           per_page: 1,
           page: 2,
-          place: "albany-county"
+          place_url: "albany-county-two-pages"
         ]
       } ->
         %Tesla.Env{
@@ -356,5 +275,84 @@ defmodule ExSeeClickFix.IssuesTest do
           }
         }
     end)
+
+    :ok
+  end
+
+  describe "list/1" do
+    test "lists valid records" do
+      client = ExSeeClickFix.Client.new("albany-county-single-page")
+
+      assert ExSeeClickFix.Issues.list(client, per_page: 1) ==
+               [
+                 %ExSeeClickFix.Issue{
+                   acknowledged_at: nil,
+                   address: "147-149 Prichard Street Fitchburg, MA, 01420, USA",
+                   closed_at: nil,
+                   comment_url: "https://seeclickfix.com/api/v2/issues/8957626/comments",
+                   created_at: ~U[2020-11-23 17:56:41Z],
+                   description: "missed Friday",
+                   flag_url: "https://seeclickfix.com/api/v2/issues/8957626/flag",
+                   html_url: "https://seeclickfix.com/issues/8957626",
+                   id: 8_957_626,
+                   lat: 42.5857019855574,
+                   lng: -71.8010439778683,
+                   rating: 1,
+                   shortened_url: nil,
+                   status: "Open",
+                   summary: "Missed Trash, Recycling or Yard Waste Pickup",
+                   updated_at: ~U[2020-11-23 17:56:42Z],
+                   url: "https://seeclickfix.com/api/v2/issues/8957626"
+                 }
+               ]
+    end
+  end
+
+  describe "stream_list" do
+    test "streams records from multiple pages" do
+      client = ExSeeClickFix.Client.new("albany-county-two-pages")
+
+      assert ExSeeClickFix.Issues.stream_list(client, per_page: 1) |> Enum.to_list() == [
+               %ExSeeClickFix.Issue{
+                 acknowledged_at: nil,
+                 address: "147-149 Prichard Street Fitchburg, MA, 01420, USA",
+                 closed_at: nil,
+                 comment_url: "https://seeclickfix.com/api/v2/issues/8957626/comments",
+                 created_at: ~U[2020-11-23 17:56:41Z],
+                 description: "missed Friday",
+                 flag_url: "https://seeclickfix.com/api/v2/issues/8957626/flag",
+                 html_url: "https://seeclickfix.com/issues/8957626",
+                 id: 8_957_626,
+                 lat: 42.5857019855574,
+                 lng: -71.8010439778683,
+                 rating: 1,
+                 shortened_url: nil,
+                 status: "Open",
+                 summary: "Missed Trash, Recycling or Yard Waste Pickup",
+                 updated_at: ~U[2020-11-23 17:56:42Z],
+                 url: "https://seeclickfix.com/api/v2/issues/8957626"
+               },
+               %ExSeeClickFix.Issue{
+                 acknowledged_at: nil,
+                 address: "115 S Grace St Crockett, TX, 75835, USA",
+                 closed_at: nil,
+                 comment_url: "https://seeclickfix.com/api/v2/issues/8958565/comments",
+                 created_at: ~U[2020-11-23 20:46:27Z],
+                 description:
+                   "Sarah Clark reported a water leak behind her house at her fence she says the leak is coming from Lakeway or Twin Drive and really making saturating her back yard. She thinks it's on the City side. ",
+                 flag_url: "https://seeclickfix.com/api/v2/issues/8958565/flag",
+                 html_url: "https://seeclickfix.com/issues/8958565",
+                 id: 8_958_565,
+                 lat: 31.3196943014884,
+                 lng: -95.4435539245605,
+                 rating: 1,
+                 shortened_url: nil,
+                 status: "Open",
+                 summary: "Water Leak",
+                 updated_at: ~U[2020-11-23 20:46:28Z],
+                 url: "https://seeclickfix.com/api/v2/issues/8958565"
+               }
+             ]
+    end
   end
 end
