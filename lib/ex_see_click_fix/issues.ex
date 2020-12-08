@@ -3,7 +3,7 @@ defmodule ExSeeClickFix.Issues do
 
   @resource "issues"
 
-  def stream_list(client, options) do
+  def stream_list(client, options \\ []) do
     Stream.resource(
       fn ->
         %{pagination: nil, options: options}

@@ -16,6 +16,7 @@ defmodule ExSeeClickFix.Issue do
     field(:acknowledged_at, :utc_datetime)
     field(:closed_at, :utc_datetime)
     # field :reporter
+    embeds_one(:request_type, ExSeeClickFix.RequestType, on_replace: :delete)
     field(:shortened_url, :string)
     field(:url, :string)
     field(:comment_url, :string)
@@ -65,5 +66,6 @@ defmodule ExSeeClickFix.Issue do
       :flag_url,
       :html_url
     ])
+    |> cast_embed(:request_type, with: &ExSeeClickFix.RequestType.changeset/2)
   end
 end

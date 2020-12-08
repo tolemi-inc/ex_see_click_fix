@@ -298,6 +298,14 @@ defmodule ExSeeClickFix.IssuesTest do
                    lat: 42.5857019855574,
                    lng: -71.8010439778683,
                    rating: 1,
+                   request_type: %ExSeeClickFix.RequestType{
+                     id: 7048,
+                     organization: "Fitchburg, MA",
+                     related_issues_url:
+                       "https://seeclickfix.com/api/v2/issues?lat=42.5857019855574&lng=-71.8010439778683&request_types=7048&sort=distance",
+                     title: "Missed Trash, Recycling or Yard Waste Pickup",
+                     url: "https://seeclickfix.com/api/v2/request_types/7048"
+                   },
                    shortened_url: nil,
                    status: "Open",
                    summary: "Missed Trash, Recycling or Yard Waste Pickup",
@@ -326,6 +334,14 @@ defmodule ExSeeClickFix.IssuesTest do
                  lat: 42.5857019855574,
                  lng: -71.8010439778683,
                  rating: 1,
+                 request_type: %ExSeeClickFix.RequestType{
+                   id: 7048,
+                   organization: "Fitchburg, MA",
+                   related_issues_url:
+                     "https://seeclickfix.com/api/v2/issues?lat=42.5857019855574&lng=-71.8010439778683&request_types=7048&sort=distance",
+                   title: "Missed Trash, Recycling or Yard Waste Pickup",
+                   url: "https://seeclickfix.com/api/v2/request_types/7048"
+                 },
                  shortened_url: nil,
                  status: "Open",
                  summary: "Missed Trash, Recycling or Yard Waste Pickup",
@@ -346,6 +362,14 @@ defmodule ExSeeClickFix.IssuesTest do
                  lat: 31.3196943014884,
                  lng: -95.4435539245605,
                  rating: 1,
+                 request_type: %ExSeeClickFix.RequestType{
+                   id: 22312,
+                   organization: "Crockett, TX (Water Only)",
+                   related_issues_url:
+                     "https://seeclickfix.com/api/v2/issues?lat=31.3196943014884&lng=-95.4435539245605&request_types=22312&sort=distance",
+                   title: "Water Leak",
+                   url: "https://seeclickfix.com/api/v2/request_types/22312"
+                 },
                  shortened_url: nil,
                  status: "Open",
                  summary: "Water Leak",
