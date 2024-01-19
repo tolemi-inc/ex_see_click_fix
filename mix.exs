@@ -27,7 +27,7 @@ defmodule ExSeeClickFix.MixProject do
       {:external_service, "~> 1.0.1"},
       {:hackney, ">= 1.9.0"},
       {:jason, ">= 1.0.0"},
-      {:tesla, "~> 1.4.0"}
+      {:tesla, "~> 1.0"}
     ]
   end
 end
